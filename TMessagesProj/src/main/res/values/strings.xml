@@ -492,11 +492,13 @@
     <string name="ChannelAddSubscribers">Add Subscribers</string>
     <string name="LeaveChannel">Leave Channel</string>
     <string name="LeaveChannelMenu">Leave channel</string>
+    <string name="Leave">Leave</string>
     <string name="ChannelSettings">Settings</string>
     <string name="ChannelJoin">JOIN</string>
     <string name="ChannelJoinRequest">APPLY TO JOIN CHANNEL</string>
     <string name="ChannelJoinRequestSent">JOIN REQUEST SENT</string>
     <string name="GroupJoin">JOIN</string>
+    <string name="GroupJoin2">Join</string>
     <string name="GroupJoinRequest">APPLY TO JOIN GROUP</string>
     <string name="GroupJoinRequestSent">JOIN REQUEST SENT</string>
     <string name="ChannelBroadcast">Broadcast</string>
@@ -760,6 +762,7 @@
     <string name="AddImage">Add Image</string>
     <string name="ChoosePhotoOrVideo">Choose photo or video</string>
     <string name="AddPhoto">Set new photo</string>
+    <string name="AddPhoto1">Add photo</string>
     <string name="ChooseTakePhoto">Take photo</string>
     <string name="ChooseRecordVideo">Record video</string>
     <string name="ChooseFromGallery">Upload from gallery</string>
@@ -780,6 +783,7 @@
     <string name="CantAddBotAsAdmin">Sorry, bots can only be added to channels as administrators.</string>
     <string name="AdminWillBeRemoved">%1$s will be removed from admins if you restrict them.</string>
     <string name="Discussion">Discussion</string>
+    <string name="Discuss">Discuss</string>
     <string name="ViewDiscussion">View discussion</string>
     <string name="DiscussionInfo">Add a group chat for comments</string>
     <string name="LinkedChannel">Linked Channel</string>
@@ -2411,6 +2415,7 @@
     <string name="SoundMuted">Sound muted</string>
     <string name="EditName">Edit Name</string>
     <string name="ProfileColorEdit">Change profile color</string>
+    <string name="CustomizeColors">Customize</string>
     <string name="NotificationsCustomize">Customize</string>
     <string name="NotificationsCustom">Custom</string>
     <string name="NotificationsImportance">Importance</string>
@@ -5353,6 +5358,7 @@
     <string name="SendAGift">Send a Gift</string>
     <string name="ProfileSendAGift">Send a Gift</string>
     <string name="ProfileSendAGiftToChannel">Send a Gift</string>
+    <string name="Gift">Gift</string>
     <string name="GiftPremiumActivateForFree">Activate For Free</string>
     <string name="GiftPremiumActivateErrorTitle">You already have Telegram Premium</string>
     <string name="GiftPremiumActivateErrorText">You can activate this gift code after %1$s or **send the link** to a friend.</string>

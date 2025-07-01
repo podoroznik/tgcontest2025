@@ -1,5 +1,6 @@
 package org.telegram.ui.Stars;
 
+import static org.telegram.messenger.AndroidUtilities.accelerateInterpolator;
 import static org.telegram.messenger.AndroidUtilities.dp;
 import static org.telegram.messenger.AndroidUtilities.lerp;
 import static org.telegram.ui.Stars.StarsController.findAttribute;
@@ -13,9 +14,12 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.MessagesController;
@@ -42,6 +46,40 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     private final View avatarContainer;
     private final ProfileActivity.AvatarImageView avatarImage;
     private final Theme.ResourcesProvider resourcesProvider;
+    private Interpolator accelerateInterpolator1 = new AccelerateInterpolator(0.6f);
+    private Interpolator accelerateInterpolator3 = new AccelerateInterpolator(0.8f);
+    private Interpolator accelerateInterpolator2 = new AccelerateInterpolator(0.55f);
+
+    private  final Interpolator firstInterpolator = new Interpolator() {
+        @Override
+        public float getInterpolation(float input) {
+            if(input > 0.495) return 1;
+            float a = input / 0.495f;
+            return accelerateInterpolator2.getInterpolation(a);
+        }
+    };
+
+    private  final Interpolator secondInterpolator = new Interpolator() {
+        @Override
+        public float getInterpolation(float input) {
+            if(input < 0.33) return 0;
+            if(input > 0.66) return 1;
+            float a = (input - 0.33f) / 0.33f;
+            return accelerateInterpolator1.getInterpolation(a);
+        }
+    };
+
+    private  final Interpolator thirdInterpolator = new Interpolator() {
+        @Override
+        public float getInterpolation(float input) {
+            if(input < 0.66) return 0;
+            float a = (input - 0.66f) / 0.33f;
+            return accelerateInterpolator3.getInterpolation(a);
+        }
+    };
+
+
+    private final Interpolator scaleInterpolator = new DecelerateInterpolator(1f);
 
     public ProfileGiftsView(Context context, int currentAccount, long dialogId, @NonNull View avatarContainer, ProfileActivity.AvatarImageView avatarImage, Theme.ResourcesProvider resourcesProvider) {
         super(context);
@@ -57,6 +95,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     private float expandProgress;
+
     public void setExpandProgress(float progress) {
         if (this.expandProgress != progress) {
             this.expandProgress = progress;
@@ -65,11 +104,19 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     private float actionBarProgress;
+
     public void setActionBarActionMode(float progress) {
 //        if (Theme.isCurrentThemeDark()) {
 //            return;
 //        }
         actionBarProgress = progress;
+        invalidate();
+    }
+
+    private float vacuumProgress = 0f;
+
+    public void setVacuumProgress(float progress) {
+        vacuumProgress = progress;
         invalidate();
     }
 
@@ -101,6 +148,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     private float progressToInsets = 1f;
+
     public void setProgressToStoriesInsets(float progressToInsets) {
         if (this.progressToInsets == progressToInsets) {
             return;
@@ -188,11 +236,11 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
         }
 
         public void draw(
-            Canvas canvas,
-            float cx, float cy,
-            float ascale, float rotate,
-            float alpha,
-            float gradientAlpha
+                Canvas canvas,
+                float cx, float cy,
+                float ascale, float rotate,
+                float alpha,
+                float gradientAlpha
         ) {
             if (alpha <= 0.0f) return;
             final float gsz = dp(45);
@@ -282,7 +330,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
             if (oldGift != null) {
                 g.copy(oldGift);
             } else {
-                g.gradient = new RadialGradient(0, 0, dp(22.5f), new int[] { g.color, Theme.multAlpha(g.color, 0.0f) }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+                g.gradient = new RadialGradient(0, 0, dp(22.5f), new int[]{g.color, Theme.multAlpha(g.color, 0.0f)}, new float[]{0, 1}, Shader.TileMode.CLAMP);
                 g.gradientPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                 g.gradientPaint.setShader(g.gradient);
                 if (g.document != null) {
@@ -318,27 +366,118 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
             invalidate();
     }
 
-    public final AnimatedFloat animatedCount = new AnimatedFloat(this, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private float trueY = 0f;
+
+    public void setTrueY(float y){
+        trueY = y;
+    }
+    public float getTrueY(){
+        return trueY;
+    }
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
         if (gifts.isEmpty() || expandProgress >= 1.0f) return;
 
         final float ax = avatarContainer.getX();
-        final float ay = avatarContainer.getY();
+        final float ay = trueY;
         final float aw = (avatarContainer.getWidth()) * avatarContainer.getScaleX();
         final float ah = (avatarContainer.getHeight()) * avatarContainer.getScaleY();
 
         canvas.save();
         canvas.clipRect(0, 0, getWidth(), expandY);
 
-        final float acx = ax + aw / 2.0f;
-        final float cacx = Math.min(acx, dp(48));
-        final float acy = ay + ah / 2.0f;
-        final float ar = Math.min(aw, ah) / 2.0f + dp(6);
-        final float cx = getWidth() / 2.0f;
+        final float acx = ax + aw / 2.0f; // avatar center x
+        final float acy = ay + ah / 2.0f; // avatar center y
+        final float acy2 = avatarContainer.getY() + ah / 2.0f; // avatar center y2
+        final float ar = Math.min(aw, ah) / 2.0f + dp(6); // avatar radius
+
+       final float value1 = thirdInterpolator.getInterpolation(vacuumProgress);
+        final float value2 =(secondInterpolator.getInterpolation(vacuumProgress));
+        final float value3 =(thirdInterpolator.getInterpolation(vacuumProgress));
+        final float value4 =(secondInterpolator.getInterpolation(vacuumProgress));
+        final float value5 =(firstInterpolator.getInterpolation(vacuumProgress));
+        final float value6 =(firstInterpolator.getInterpolation(vacuumProgress));
+
+        final float scale1 = scaleInterpolator.getInterpolation( Math.max(value1,0.3f));
+        final float scale2 = scaleInterpolator.getInterpolation( Math.max(value2,0.3f));
+        final float scale3 = scaleInterpolator.getInterpolation( Math.max(value3,0.3f));
+        final float scale4 = scaleInterpolator.getInterpolation( Math.max(value4,0.3f));
+        final float scale5 = scaleInterpolator.getInterpolation( Math.max(value5,0.3f));
+        final float scale6 = scaleInterpolator.getInterpolation( Math.max(value6,0.3f));
 
         final float closedAlpha = Utilities.clamp01((float) (expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
+
+
+        float startX =  acx;
+        float startY =  acy2;
+
+        float midX1 = acx +  (ar + dp(20)) * (float) Math.cos(Math.toRadians(200));
+        float midY1 = acy + (ar + dp(20)) * (float) Math.sin(Math.toRadians(200));
+        float endX1 = (float) (acx +  (ar + dp(28)) * Math.cos(Math.toRadians(215)));
+        float endY1 = (float) (acy +  (ar + dp(28)) * Math.sin(Math.toRadians(215)));
+        float currentX1 = (1 - value1) * (1 - value1) * startX
+                + 2 * (1 - value1) * value1 * midX1
+                + value1 * value1 * endX1;
+        float currentY1 = (1 - value1) * (1 - value1) * startY
+                + 2 * (1 - value1) * value1 * midY1
+                + value1 * value1 * endY1;
+
+        float midX2 = acx +  (ar + dp(40)) * (float) Math.cos(Math.toRadians(-2));
+        float midY2 = acy + (ar + dp(40)) * (float) Math.sin(Math.toRadians(-2));
+        float endX2 = (float) (acx +  (ar + dp(45)) * Math.cos(Math.toRadians(-25)));
+        float endY2 = (float) (acy +  (ar + dp(45)) * Math.sin(Math.toRadians(-25)));
+        float currentX2 = (1 - value2) * (1 - value2) * startX
+                + 2 * (1 - value2) * value2 * midX2
+                + value2 * value2 * endX2;
+        float currentY2 = (1 - value2) * (1 - value2) * startY
+                + 2 * (1 - value2) * value2 * midY2
+                + value2 * value2 * endY2;
+
+        float midX3 = acx +  (ar + dp(15)) * (float) Math.cos(Math.toRadians(28));
+        float midY3 = acy + (ar + dp(15)) * (float) Math.sin(Math.toRadians(28));
+        float endX3 = (float) (acx +  (ar + dp(27)) * Math.cos(Math.toRadians(22)));
+        float endY3 = (float) (acy +  (ar + dp(27)) * Math.sin(Math.toRadians(22)));
+        float currentX3 = (1 - value3) * (1 - value3) * startX
+                + 2 * (1 - value3) * value3 * midX3
+                + value3 * value3 * endX3;
+        float currentY3 = (1 - value3) * (1 - value3) * startY
+                + 2 * (1 - value3) * value3 * midY3
+                + value3 * value3 * endY3;
+
+        float midX4 = acx +  (ar + dp(20)) * (float) Math.cos(Math.toRadians(125));
+        float midY4 = acy + (ar + dp(20)) * (float) Math.sin(Math.toRadians(125));
+        float endX4 = (float) (acx +  (ar + dp(30)) * Math.cos(Math.toRadians(160)));
+        float endY4 = (float) (acy +  (ar + dp(30)) * Math.sin(Math.toRadians(160)));
+        float currentX4 = (1 - value4) * (1 - value4) * startX
+                + 2 * (1 - value4) * value4 * midX4
+                + value4 * value4 * endX4;
+        float currentY4 = (1 - value4) * (1 - value4) * startY
+                + 2 * (1 - value4) * value4 * midY4
+                + value4 * value4 * endY4;
+
+        float midX5 = acx +  (ar + dp(45)) * (float) Math.cos(Math.toRadians(190));
+        float midY5 = acy + (ar + dp(45)) * (float) Math.sin(Math.toRadians(190));
+        float endX5 = (float) (acx +  (ar + dp(55)) * Math.cos(Math.toRadians(186)));
+        float endY5 = (float) (acy +  (ar + dp(55)) * Math.sin(Math.toRadians(186)));
+        float currentX5 = (1 - value5) * (1 - value5) * startX
+                + 2 * (1 - value5) * value5 * midX5
+                + value5 * value5 * endX5;
+        float currentY5 = (1 - value5) * (1 - value5) * startY
+                + 2 * (1 - value5) * value5 * midY5
+                + value5 * value5 * endY5;
+
+        float midX6 = acx +  (ar + dp(45)) * (float) Math.cos(Math.toRadians(5));
+        float midY6 = acy + (ar + dp(45)) * (float) Math.sin(Math.toRadians(5));
+        float endX6 = (float) (acx +  (ar + dp(65)) * Math.cos(Math.toRadians(-5)));
+        float endY6 = (float) (acy +  (ar + dp(65)) * Math.sin(Math.toRadians(-5)));
+        float currentX6 = (1 - value6) * (1 - value6) * startX
+                + 2 * (1 - value6) * value6 * midX6
+                + value6 * value6 * endX6;
+        float currentY6 = (1 - value6) * (1 - value6) * startY
+                + 2 * (1 - value6) * value6 * midY6
+                + value6 * value6 * endY6;
+
 
         for (int i = 0; i < gifts.size(); ++i) {
             final Gift gift = gifts.get(i);
@@ -347,75 +486,57 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
             final int index = i; // gifts.size() == maxCount ? i - 1 : i;
             if (index == 0) {
                 gift.draw(
-                    canvas,
-                    (float) (acx + ar * Math.cos(-65 / 180.0f * Math.PI)),
-                    (float) (acy + ar * Math.sin(-65 / 180.0f * Math.PI)),
-                    scale, -65 + 90,
-                    alpha * (1.0f - expandProgress), lerp(0.9f, 0.25f, actionBarProgress)
+                        canvas,
+                        currentX1,
+                        currentY1,
+                        scale * scale1, -65 + 90,
+                        alpha * alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             } else if (index == 1) {
                 gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .27f, dp(62)), cx, 0.5f * actionBarProgress), acy - dp(52),
-                    scale, -4.0f,
-                    alpha * alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
+                        canvas,
+                        currentX2,
+                        currentY2,
+                        scale* scale2, -4.0f,
+                        alpha * alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             } else if (index == 2) {
                 gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .46f, dp(105)), cx, 0.5f * actionBarProgress), acy - dp(72),
-                    scale, 8.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
+                        canvas,
+                        currentX3,
+                        currentY3,
+                        scale * scale3, 8.0f,
+                        alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             } else if (index == 3) {
                 gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .60f, dp(136)), cx, 0.5f * actionBarProgress), acy - dp(46),
-                    scale, 3.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
+                        canvas,
+                        currentX4,
+                        currentY4,
+                        scale * scale4, 3.0f,
+                        alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             } else if (index == 4) {
                 gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .08f, dp(21.6f)), cx, 0.5f * actionBarProgress), acy - dp(82f),
-                    scale, -3.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
+                        canvas,
+                        currentX5,
+                        currentY5,
+                        scale * scale5, -3.0f,
+                        alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             } else if (index == 5) {
                 gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .745f, dp(186)), cx, 0.5f * actionBarProgress), acy - dp(39),
-                    scale, 2.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 6) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .38f, dp(102)), expandY - dp(12),
-                    scale, 0,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 7) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .135f, dp(36)), expandY - dp(17.6f),
-                    scale, -5.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 8) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .76f, dp(178)), expandY - dp(21.66f),
-                    scale, 5.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
+                        canvas,
+                        currentX6,
+                        currentY6,
+                        scale * scale6, 2.0f,
+                        alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
+                        1.0f
                 );
             }
         }
@@ -432,6 +553,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     private Gift pressedGift;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         final Gift hit = getGiftUnder(event.getX(), event.getY());
