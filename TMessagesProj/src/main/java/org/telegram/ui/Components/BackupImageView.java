@@ -13,13 +13,19 @@ import static org.telegram.messenger.AndroidUtilities.dp;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.graphics.ComposeShader;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
@@ -38,14 +44,18 @@ public class BackupImageView extends View {
 
     protected ImageReceiver imageReceiver;
     protected ImageReceiver blurImageReceiver;
+    protected Integer blurImageRadius;
     protected int width = -1;
     protected int height = -1;
     public AnimatedEmojiDrawable animatedEmojiDrawable;
     public ColorFilter animatedEmojiDrawableColorFilter;
     private AvatarDrawable avatarDrawable;
     boolean attached;
+    Paint paint = new Paint();
 
     protected boolean hasBlur;
+    protected boolean hasBottomBlur;
+    protected boolean reloadBlurThumb = true;
     protected boolean blurAllowed;
     public boolean drawFromStart;
 
@@ -75,6 +85,10 @@ public class BackupImageView extends View {
         }
     }
 
+    public void setReloadBlurThumb(boolean reloadBlurThumb) {
+        this.reloadBlurThumb = reloadBlurThumb;
+    }
+
     public void setHasBlur(boolean hasBlur) {
         if (hasBlur && !blurAllowed) {
             throw new IllegalStateException("You should call setBlurAllowed(...) before calling setHasBlur(true)!");
@@ -89,8 +103,26 @@ public class BackupImageView extends View {
         checkCreateBlurredImage();
     }
 
+    public void setBlurImageRadius(int radius) {
+        blurImageRadius = radius;
+    }
+
+    public void setHasBottomBlur(boolean hasBlur) {
+        if (hasBlur && !blurAllowed) {
+            throw new IllegalStateException("You should call setBlurAllowed(...) before calling setHasBottomBlur(true)!");
+        }
+        this.hasBottomBlur = hasBlur;
+        if (!hasBlur) {
+            if (blurImageReceiver != null && blurImageReceiver.getBitmap() != null && !blurImageReceiver.getBitmap().isRecycled()) {
+                blurImageReceiver.getBitmap().recycle();
+                blurImageReceiver.setImageBitmap((Bitmap) null);
+            }
+        }
+        checkCreateBlurredImage();
+    }
+
     public void onNewImageSet() {
-        if (hasBlur) {
+        if (hasBlur || hasBottomBlur) {
             if (blurImageReceiver.getBitmap() != null && !blurImageReceiver.getBitmap().isRecycled()) {
                 blurImageReceiver.getBitmap().recycle();
             }
@@ -100,13 +132,46 @@ public class BackupImageView extends View {
     }
 
     private void checkCreateBlurredImage() {
-        if (hasBlur && blurImageReceiver.getBitmap() == null && imageReceiver.getBitmap() != null) {
+        if ((hasBottomBlur && blurImageReceiver.getBitmap() == null) || (hasBlur && blurImageReceiver.getBitmap() == null) && imageReceiver.getBitmap() != null) {
             Bitmap bitmap = imageReceiver.getBitmap();
             if (bitmap != null && !bitmap.isRecycled()) {
-                blurImageReceiver.setImageBitmap(Utilities.stackBlurBitmapMax(bitmap));
+                if (!imageReceiver.hasImageLoaded() && reloadBlurThumb) {
+                    AndroidUtilities.runOnUIThread(this::checkCreateBlurredImage, 150);
+                    return;
+                }
+                if (hasBottomBlur) {
+                    Bitmap blurBitmap = blurImageRadius == null ? Utilities.stackBlurBitmapMax(bitmap) : Utilities.stackBlurBitmapWithScaleFactor(bitmap, blurImageRadius);
+                    blurImageReceiver.setImageBitmap(getFinalBottomBlurBitmap(blurBitmap));
+                } else {
+                    blurImageReceiver.setImageBitmap(blurImageRadius == null ? Utilities.stackBlurBitmapMax(bitmap) : Utilities.stackBlurBitmapWithScaleFactor(bitmap, blurImageRadius));
+                }
                 invalidate();
             }
         }
+    }
+
+    private Bitmap getFinalBottomBlurBitmap(Bitmap bitmap) {
+        Bitmap resultBitmap = Bitmap.createBitmap(
+                bitmap.getWidth(),
+                bitmap.getHeight(),
+                Bitmap.Config.ARGB_8888
+        );
+        Canvas canvas = new Canvas(resultBitmap);
+
+        BitmapShader bitmapShader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+
+        LinearGradient alphaGradient = new LinearGradient(
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.23f,
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.33f,
+                Color.BLACK, Color.TRANSPARENT,
+                Shader.TileMode.CLAMP);
+
+        ComposeShader composeShader = new ComposeShader(bitmapShader, alphaGradient, PorterDuff.Mode.DST_IN);
+
+        paint.setShader(composeShader);
+
+        canvas.drawRect(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
+        return resultBitmap;
     }
 
     public void setOrientation(int angle, boolean center) {
@@ -253,7 +318,7 @@ public class BackupImageView extends View {
     }
 
     public void setRoundRadius(int tl, int tr, int bl, int br) {
-        imageReceiver.setRoundRadius(tl, tr, bl ,br);
+        imageReceiver.setRoundRadius(tl, tr, bl, br);
         if (blurAllowed) {
             blurImageReceiver.setRoundRadius(tl, tr, bl, br);
         }
@@ -341,7 +406,7 @@ public class BackupImageView extends View {
             }
         }
         imageReceiver.draw(canvas);
-        if (blurAllowed) {
+        if (blurAllowed && (hasBlur || hasBottomBlur)) {
             blurImageReceiver.draw(canvas);
         }
     }
@@ -374,7 +439,7 @@ public class BackupImageView extends View {
     }
 
     ValueAnimator roundRadiusAnimator;
-    
+
     public void animateToRoundRadius(int animateToRad) {
         if (getRoundRadius()[0] != animateToRad) {
             if (roundRadiusAnimator != null) {

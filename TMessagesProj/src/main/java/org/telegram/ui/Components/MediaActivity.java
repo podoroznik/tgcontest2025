@@ -373,7 +373,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
             }
         }
 
-        avatarImageView = new ProfileActivity.AvatarImageView(context) {
+        avatarImageView = new ProfileActivity.AvatarImageView(context, false) {
             @Override
             public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(info);

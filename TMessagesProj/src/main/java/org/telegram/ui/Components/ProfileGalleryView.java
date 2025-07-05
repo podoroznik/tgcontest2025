@@ -1,5 +1,7 @@
 package org.telegram.ui.Components;
 
+import static org.telegram.messenger.AndroidUtilities.dp;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
@@ -80,6 +82,8 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
     private ArrayList<VectorAvatarThumbDrawable> vectorAvatars = new ArrayList<>();
     private ArrayList<Integer> imagesLocationsSizes = new ArrayList<>();
     private ArrayList<Float> imagesUploadProgress = new ArrayList<>();
+    private boolean bottomBlurEnabled = false;
+    private boolean initBlurOnCreate = false;
 
     private int settingMainPhoto;
 
@@ -99,6 +103,18 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
 
     public void setHasActiveVideo(boolean hasActiveVideo) {
         this.hasActiveVideo = hasActiveVideo;
+    }
+
+    public void initializeBlur() {
+        if (!adapter.imageViews.isEmpty()) {
+            int index = adapter.imageViews.indexOf(getCurrentItemView());
+            BackupImageView item = adapter.imageViews.get(index);
+            if (item != null) {
+                item.setHasBottomBlur(true);
+            } else {
+                initBlurOnCreate = true;
+            }
+        }
     }
 
     public View findVideoActiveView() {
@@ -232,6 +248,10 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
         dialogPhotos = null;
     }
 
+    public void setBottomBlurEnabled(boolean enabled) {
+        bottomBlurEnabled = enabled;
+    }
+
     private void checkCustomAvatar(int position, float positionOffset) {
         float progressToCustomAvatar = 0;
         if (customAvatarIndex >= 0 || fallbackPhotoIndex >= 0) {
@@ -252,7 +272,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 progressToCustomAvatar = 2f - progressToCustomAvatar;
             }
 
-            progressToCustomAvatar = Utilities.clamp(progressToCustomAvatar, 1f ,0);
+            progressToCustomAvatar = Utilities.clamp(progressToCustomAvatar, 1f, 0);
         }
         setCustomAvatarProgress(progressToCustomAvatar);
     }
@@ -284,6 +304,20 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 checkCustomAvatar(position, positionOffset);
+                for (int i = 0; i < getChildCount(); i++) {
+                    if (getChildAt(i) == getCurrentItemView()) {
+                        int index = adapter.imageViews.indexOf(getCurrentItemView());
+                        if(getRealPosition() == 0){
+                            adapter.imageViews.get(adapter.getRealPosition(getChildCount()-2)).setHasBottomBlur(true);
+                        }
+                        if(adapter.imageViews.size() > index + 1){
+                            adapter.imageViews.get(index + 1).setHasBottomBlur(true);
+                        }
+                        if(adapter.imageViews.size() <= index - 1){
+                            adapter.imageViews.get(index - 1).setHasBottomBlur(true);
+                        }
+                    }
+                }
                 if (positionOffsetPixels == 0) {
                     position = adapter.getRealPosition(position);
                     BackupImageView currentView = getCurrentItemView();
@@ -335,6 +369,12 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 }
                 if (dialogPhotos != null) {
                     dialogPhotos.loadAfter(position - (adapter != null ? adapter.getExtraCount() : 0), forward);
+                }
+                for (int i = 0; i < getChildCount(); i++) {
+                    if (getChildAt(i) == getCurrentItemView()) {
+                        int index = adapter.imageViews.indexOf(getCurrentItemView());
+                        adapter.imageViews.get(index).setHasBottomBlur(true);
+                    }
                 }
             }
 
@@ -425,7 +465,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
         if (pinchToZoomHelper != null && getCurrentItemView() != null) {
             if (action != MotionEvent.ACTION_DOWN && isDownReleased && !pinchToZoomHelper.isInOverlayMode()) {
                 pinchToZoomHelper.checkPinchToZoom(MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 0, 0, 0), this, getCurrentItemView().getImageReceiver(), null, null, null);
-            } else if (pinchToZoomHelper.checkPinchToZoom(ev, this, getCurrentItemView().getImageReceiver(), null, null,null)) {
+            } else if (pinchToZoomHelper.checkPinchToZoom(ev, this, getCurrentItemView().getImageReceiver(), null, null, null)) {
                 if (!isDownReleased) {
                     isDownReleased = true;
                     callback.onRelease();
@@ -1140,7 +1180,8 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 container.removeView(item.textureViewStubView);
             }
             if (item.imageView == null) {
-                item.imageView = new AvatarImageView(context, position, placeholderPaint);
+                item.imageView = new AvatarImageView(context, position, placeholderPaint, bottomBlurEnabled, initBlurOnCreate, realPosition != 0);
+                initBlurOnCreate = false;
                 imageViews.set(position, item.imageView);
             }
 
@@ -1188,6 +1229,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 String filter = (location != null && location.photoSize instanceof TLRPC.TL_photoStrippedSize) ? "b" : null;
                 String parent = "avatar_" + dialogId;
                 item.imageView.setImageMedia(vectorAvatars.get(imageLocationPosition), videoLocation, null, imagesLocations.get(imageLocationPosition), null, thumbsLocations.get(imageLocationPosition), filter, null, imagesLocationsSizes.get(imageLocationPosition), 1, parent);
+                item.imageView.setHasBottomBlur(true);
             }
             if (imageLocationPosition >= 0 && imageLocationPosition < imagesUploadProgress.size() && imagesUploadProgress.get(imageLocationPosition) != null) {
                 needProgress = true;
@@ -1316,7 +1358,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
         imagesLocationsSizes.clear();
         imagesUploadProgress.clear();
         adapter.notifyDataSetChanged();
-        setCurrentItem(0 , false);
+        setCurrentItem(0, false);
         selectedPage = 0;
         uploadingImageLocation = null;
         prevImageLocation = null;
@@ -1364,7 +1406,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
 
     private class AvatarImageView extends BackupImageView {
 
-        private final int radialProgressSize = AndroidUtilities.dp(64f);
+        private final int radialProgressSize = dp(64f);
 
         private RadialProgress2 radialProgress;
         private ValueAnimator radialProgressHideAnimator;
@@ -1374,11 +1416,15 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
         private final int position;
         private final Paint placeholderPaint;
 
-        public AvatarImageView(Context context, int position, Paint placeholderPaint) {
+        public AvatarImageView(Context context, int position, Paint placeholderPaint, boolean bottomBlurEnabled, boolean hasBottomBlur, boolean reloadBlurThumb) {
             super(context);
             this.position = position;
             this.placeholderPaint = placeholderPaint;
             setLayerNum(imagesLayerNum);
+            setBlurAllowed(bottomBlurEnabled);
+            setHasBottomBlur(hasBottomBlur);
+            setBlurImageRadius(30);
+            setReloadBlurThumb(reloadBlurThumb);
         }
 
         @Override
