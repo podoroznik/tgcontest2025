@@ -5664,7 +5664,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         }
 
-        if ((!(ChatObject.isChannelOrGiga(currentChat) || myProfile)) || isTopic || userId != 0) {
+        if ((!(ChatObject.isChannelOrGiga(currentChat) || myProfile || UserObject.isUserSelf(user))) || isTopic || (userId != 0 && !myProfile && !UserObject.isUserSelf(user))) {
             buttons.add(
                     new ProfileButton(
                             R.drawable.message,
