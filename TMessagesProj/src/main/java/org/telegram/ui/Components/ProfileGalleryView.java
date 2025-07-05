@@ -1229,7 +1229,6 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 String filter = (location != null && location.photoSize instanceof TLRPC.TL_photoStrippedSize) ? "b" : null;
                 String parent = "avatar_" + dialogId;
                 item.imageView.setImageMedia(vectorAvatars.get(imageLocationPosition), videoLocation, null, imagesLocations.get(imageLocationPosition), null, thumbsLocations.get(imageLocationPosition), filter, null, imagesLocationsSizes.get(imageLocationPosition), 1, parent);
-                item.imageView.setHasBottomBlur(true);
             }
             if (imageLocationPosition >= 0 && imageLocationPosition < imagesUploadProgress.size() && imagesUploadProgress.get(imageLocationPosition) != null) {
                 needProgress = true;
@@ -1264,6 +1263,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
 
             item.imageView.setRoundRadius(roundTopRadius, roundTopRadius, roundBottomRadius, roundBottomRadius);
             item.imageView.setTag(realPosition);
+            item.imageView.setHasBottomBlur(true);
             return item;
         }
 
