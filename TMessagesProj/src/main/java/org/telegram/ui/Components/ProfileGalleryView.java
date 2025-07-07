@@ -194,6 +194,10 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                         if (p >= 0 && p < videoLocations.size()) {
                             if (p == position) {
                                 if (!currentAllow) {
+                                    if(imageReceiver.getDrawable() instanceof  AnimatedFileDrawable){
+                                        ((AnimatedFileDrawable) imageReceiver.getDrawable()).setHasBottomBlur(bottomBlurEnabled);
+                                        ((AnimatedFileDrawable) imageReceiver.getDrawable()).setBlurImageRadius(30);
+                                    }
                                     imageReceiver.setAllowStartAnimation(true);
                                     imageReceiver.startAnimation();
                                 }
@@ -335,6 +339,11 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                             if (p == position) {
                                 if (!currentAllow) {
                                     imageReceiver.setAllowStartAnimation(true);
+                                    if(imageReceiver.getDrawable() instanceof  AnimatedFileDrawable){
+                                        ((AnimatedFileDrawable) imageReceiver.getDrawable()).setHasBottomBlur(bottomBlurEnabled);
+                                        ((AnimatedFileDrawable) imageReceiver.getDrawable()).setBlurImageRadius(30);
+                                    }
+
                                     imageReceiver.startAnimation();
                                 }
                                 ImageLocation location = videoLocations.get(p);
@@ -1197,6 +1206,8 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
                 if (drawable instanceof AnimatedFileDrawable && ((AnimatedFileDrawable) drawable).hasBitmap()) {
                     AnimatedFileDrawable animatedFileDrawable = (AnimatedFileDrawable) drawable;
                     item.imageView.setImageDrawable(drawable);
+                    animatedFileDrawable.setHasBottomBlur(true);
+                    animatedFileDrawable.setBlurImageRadius(30);
                     animatedFileDrawable.addSecondParentView(item.imageView);
                     animatedFileDrawable.setInvalidateParentViewWithSecond(true);
                 } else if (imageLocationPosition >= 0 && imageLocationPosition < videoLocations.size()) {

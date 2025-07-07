@@ -126,8 +126,20 @@ public class BackupImageView extends View {
             if (blurImageReceiver.getBitmap() != null && !blurImageReceiver.getBitmap().isRecycled()) {
                 blurImageReceiver.getBitmap().recycle();
             }
+            if (hasBottomBlur && imageReceiver.getDrawable() != null && imageReceiver.getDrawable() instanceof AnimatedFileDrawable) {
+                return;
+            }
             blurImageReceiver.setImageBitmap((Bitmap) null);
             checkCreateBlurredImage();
+        }
+    }
+
+    private void checkAnimationBottomBlur(){
+        if (hasBottomBlur && imageReceiver.getDrawable() instanceof AnimatedFileDrawable) {
+            if (!((AnimatedFileDrawable) imageReceiver.getDrawable()).getHasBottomBlur()) {
+                ((AnimatedFileDrawable) imageReceiver.getDrawable()).setHasBottomBlur(true);
+                ((AnimatedFileDrawable) imageReceiver.getDrawable()).setBlurImageRadius(30);
+            }
         }
     }
 
@@ -406,9 +418,13 @@ public class BackupImageView extends View {
             }
         }
         imageReceiver.draw(canvas);
-        if (blurAllowed && (hasBlur || hasBottomBlur)) {
+        if (blurAllowed && hasBlur) {
             blurImageReceiver.draw(canvas);
         }
+        if (blurAllowed && hasBottomBlur && !(imageReceiver.getDrawable() != null && (imageReceiver.getDrawable() instanceof AnimatedFileDrawable) && imageReceiver.getAllowStartAnimation() && ((AnimatedFileDrawable) imageReceiver.getDrawable()).getHasBottomBlur())) {
+            blurImageReceiver.draw(canvas);
+        }
+        checkAnimationBottomBlur();
     }
 
     public void setColorFilter(ColorFilter colorFilter) {

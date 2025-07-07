@@ -13,30 +13,31 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.ComposeShader;
+import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.AnimatedFileDrawableStream;
-import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.DispatchQueue;
 import org.telegram.messenger.DispatchQueuePoolBackground;
 import org.telegram.messenger.FileLoader;
 import org.telegram.messenger.FileLog;
-import org.telegram.messenger.ImageLoader;
 import org.telegram.messenger.ImageLocation;
 import org.telegram.messenger.ImageReceiver;
 import org.telegram.messenger.SharedConfig;
+import org.telegram.messenger.Utilities;
 import org.telegram.messenger.utils.BitmapsCache;
 import org.telegram.tgnet.TLRPC;
 
@@ -113,6 +114,10 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
     private boolean pendingRemoveLoading;
     private int pendingRemoveLoadingFramesReset;
     private boolean isRestarted;
+    private boolean hasBottomBlur = false;
+    private float bottomBlurRadius = 0f;
+    private final Paint paint = new Paint();
+    private final Matrix matrix = new Matrix();
     private final Object sync = new Object();
 
     private boolean invalidateParentViewWithSecond;
@@ -245,6 +250,18 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
             unusedBitmaps.clear();
             invalidateInternal();
         }
+    }
+
+    public void setHasBottomBlur(boolean hasBottomBlur) {
+        this.hasBottomBlur = hasBottomBlur;
+    }
+
+    public boolean getHasBottomBlur() {
+        return hasBottomBlur;
+    }
+
+    public void setBlurImageRadius(int radius) {
+        bottomBlurRadius = radius;
     }
 
     public void invalidateInternal() {
@@ -442,7 +459,7 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
                             if (stream != null) {
                                 stream.reset();
                             }
-                            seekToMs(nativePtr, seekTo, metaData,true);
+                            seekToMs(nativePtr, seekTo, metaData, true);
                         }
                         if (backgroundBitmap != null) {
                             lastFrameDecodeTime = System.currentTimeMillis();
@@ -707,7 +724,7 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
             bitmapToRecycle.add(backgroundBitmap);
             bitmapToRecycle.addAll(unusedBitmaps);
 
-          //  unusedBitmaps.remove(backgroundBitmap);
+            //  unusedBitmaps.remove(backgroundBitmap);
             unusedBitmaps.clear();
             renderingBitmap = null;
             nextRenderingBitmap = null;
@@ -804,7 +821,9 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
     private void scheduleNextGetFrame() {
         scheduleNextGetFrame(true, false);
     }
+
     private boolean scheduledForSeek;
+
     private void scheduleNextGetFrame(boolean wait, boolean cancel) {
         if (loadFrameTask != null && !cancel || ((!PRERENDER_FRAME || nextRenderingBitmap2 != null && !(!scheduledForSeek && pendingSeekToUI >= 0)) && nextRenderingBitmap != null) || !canLoadFrames() || destroyWhenDone || !isRunning && (!decodeSingleFrame || decodeSingleFrame && singleFrameDecoded) || parents.size() == 0 && !ignoreNoParent || generatingCache) {
             return;
@@ -1006,6 +1025,17 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
         }
         canvas.scale(sx, sy);
         canvas.drawBitmap(renderingBitmap, 0, 0, paint);
+
+        if (hasBottomBlur) {
+            Bitmap bottomBlurBitmap = getFinalBottomBlurBitmap(Utilities.stackBlurBitmapWithScaleFactor(renderingBitmap, bottomBlurRadius));
+
+            matrix.reset();
+            float scaleX = (float) renderingBitmap.getWidth() / bottomBlurBitmap.getWidth();
+            float scaleY = (float) renderingBitmap.getHeight() / bottomBlurBitmap.getHeight();
+
+            matrix.postScale(scaleX, scaleY);
+            canvas.drawBitmap(bottomBlurBitmap, matrix, paint);
+        }
     }
 
     public long getLastFrameTimestamp() {
@@ -1158,6 +1188,30 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
         }
         getVideoFrame(nativePtr, backgroundBitmap, metaData, backgroundBitmap.getRowBytes(), false, startTime, endTime, loop);
         return backgroundBitmap;
+    }
+
+    private Bitmap getFinalBottomBlurBitmap(Bitmap bitmap) {
+        Bitmap resultBitmap = Bitmap.createBitmap(
+                bitmap.getWidth(),
+                bitmap.getHeight(),
+                Bitmap.Config.ARGB_8888
+        );
+        Canvas canvas = new Canvas(resultBitmap);
+
+        BitmapShader bitmapShader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+
+        LinearGradient alphaGradient = new LinearGradient(
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.255f,
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.355f,
+                Color.BLACK, Color.TRANSPARENT,
+                Shader.TileMode.CLAMP);
+
+        ComposeShader composeShader = new ComposeShader(bitmapShader, alphaGradient, PorterDuff.Mode.DST_IN);
+
+        paint.setShader(composeShader);
+
+        canvas.drawRect(0, 0, bitmap.getWidth(), bitmap.getHeight(), paint);
+        return resultBitmap;
     }
 
     public void skipNextFrame(boolean loop) {

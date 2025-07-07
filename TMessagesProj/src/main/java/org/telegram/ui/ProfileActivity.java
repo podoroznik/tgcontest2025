@@ -834,7 +834,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             foregroundImageReceiver = new ImageReceiver(this);
             placeholderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             placeholderPaint.setColor(Color.BLACK);
-            setBlurImageRadius(10);
+            setBlurImageRadius(30);
             setBlurAllowed(blurBottom);
             setHasBottomBlur(blurBottom);
         }
@@ -973,6 +973,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             if (blurAllowed && (hasBlur || hasBottomBlur) && getHeight() > dp(120)) {
                 blurImageReceiver.setImageCoords(inset, inset, getMeasuredWidth() - inset * 2f, getMeasuredHeight() - inset * 2f);
                 blurImageReceiver.draw(canvas);
+            }
+            checkAnimationBottomBlur();
+        }
+
+        private void checkAnimationBottomBlur() {
+            if (hasBottomBlur && imageReceiver.getDrawable() instanceof AnimatedFileDrawable && getHeight() > dp(120)) {
+                if (!((AnimatedFileDrawable) imageReceiver.getDrawable()).getHasBottomBlur()) {
+                    ((AnimatedFileDrawable) imageReceiver.getDrawable()).setHasBottomBlur(true);
+                    ((AnimatedFileDrawable) imageReceiver.getDrawable()).setBlurImageRadius(30);
+                }
+            } else {
+                if (imageReceiver.getDrawable() instanceof AnimatedFileDrawable) {
+                    ((AnimatedFileDrawable) imageReceiver.getDrawable()).setHasBottomBlur(false);
+                }
             }
         }
 
@@ -5333,12 +5347,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             forceAvatarColor = false;
             int backgroundColor = ColorUtils.blendARGB(AndroidUtilities.calcBitmapColor(avatarsViewPager.getCurrentItemView().getImageReceiver().getBitmap()), ColorUtils.blendARGB((Theme.isCurrentThemeDark() ? Color.WHITE : Color.BLACK), getThemedColor(Theme.key_actionBarDefault), 0.85f), 0.75f);
             profileButtonBackgroundDrawable = Theme.createRoundRectDrawable(dp(12), backgroundColor);
-        } else if(forceAvatarColor && avatarImage.getImageReceiver().getBitmap() != null ){
+        } else if (forceAvatarColor && avatarImage.getImageReceiver().getBitmap() != null) {
             forceAvatarColor = false;
             int backgroundColor = ColorUtils.blendARGB(AndroidUtilities.calcBitmapColor(avatarImage.getImageReceiver().getBitmap()), ColorUtils.blendARGB((Theme.isCurrentThemeDark() ? Color.WHITE : Color.BLACK), getThemedColor(Theme.key_actionBarDefault), 0.85f), 0.75f);
             profileButtonBackgroundDrawable = Theme.createRoundRectDrawable(dp(12), backgroundColor);
-        }
-        else if (ignorePagerAvatar) {
+        } else if (ignorePagerAvatar) {
             ignorePagerAvatar = false;
             forceAvatarColor = false;
             profileButtonBackgroundDrawable = Theme.createRoundRectDrawable(dp(12), ColorUtils.blendARGB((Theme.isCurrentThemeDark() ? Color.WHITE : Color.BLACK), getThemedColor(Theme.key_actionBarDefault), 0.85f));
@@ -7875,7 +7888,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 if (storyView != null) {
-                    storyView.setExpandCoords(avatarContainer2.getMeasuredWidth() - AndroidUtilities.dp(40), writeButtonVisible, (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset);
+                    storyView.setExpandCoords(avatarContainer2.getMeasuredWidth() - AndroidUtilities.dp(40), false, (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset);
                 }
                 if (giftsView != null) {
                     giftsView.setExpandCoords(avatarContainer2.getMeasuredWidth() - AndroidUtilities.dp(40), writeButtonVisible, (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset);
@@ -8254,6 +8267,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             avatarImage.setForegroundImage(null, null, drawable);
         } else if (drawable instanceof AnimatedFileDrawable) {
             AnimatedFileDrawable fileDrawable = (AnimatedFileDrawable) drawable;
+            fileDrawable.setBlurImageRadius(30);
+            fileDrawable.setHasBottomBlur(true);
             avatarImage.setForegroundImage(null, null, fileDrawable);
             if (secondParent) {
                 fileDrawable.addSecondParentView(avatarImage);
