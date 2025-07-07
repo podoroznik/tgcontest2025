@@ -70,6 +70,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     public boolean allowDrawStories;
     private Integer storiesForceState;
     public BackupImageView avatarImageView;
+    public BackupImageView cacheAvatarImageView;
     private SimpleTextView titleTextView;
     private AtomicReference<SimpleTextView> titleTextLargerCopyView = new AtomicReference<>();
     private SimpleTextView subtitleTextView;
@@ -81,6 +82,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
     private ChatActivity parentFragment;
     private StatusDrawable[] statusDrawables = new StatusDrawable[6];
     private AvatarDrawable avatarDrawable = new AvatarDrawable();
+    private AvatarDrawable cacheAvatarDrawable = new AvatarDrawable();
     private int currentAccount = UserConfig.selectedAccount;
     private boolean occupyStatusBar = true;
     private int leftPadding = dp(8);
@@ -170,6 +172,8 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
 
         final boolean avatarClickable = parentFragment != null && (parentFragment.getChatMode() == 0 || parentFragment.getChatMode() == ChatActivity.MODE_SUGGESTIONS) && !UserObject.isReplyUser(parentFragment.getCurrentUser()) && (parentFragment.getCurrentUser() == null || parentFragment.getCurrentUser().id != UserObject.VERIFY);
+        cacheAvatarImageView =new BackupImageView(context);
+        cacheAvatarImageView.imageReceiver.setAllowLoadingOnAttachedOnly(false);
         avatarImageView = new BackupImageView(context) {
 
             StoriesUtilities.AvatarStoryParams params = new StoriesUtilities.AvatarStoryParams(true) {
@@ -524,12 +528,12 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 }
             }
         }
-        ImageReceiver imageReceiver = avatarImageView.getImageReceiver();
+        ImageReceiver imageReceiver = cacheAvatarImageView.getImageReceiver();
         String key = imageReceiver.getImageKey();
         ImageLoader imageLoader = ImageLoader.getInstance();
         if (key != null && !imageLoader.isInMemCache(key, false)) {
             Drawable drawable = imageReceiver.getDrawable();
-            if (drawable instanceof BitmapDrawable && !(drawable instanceof AnimatedFileDrawable)) {
+            if (imageReceiver.hasImageLoaded() && drawable instanceof BitmapDrawable && !(drawable instanceof AnimatedFileDrawable)) {
                 imageLoader.putImageToCache((BitmapDrawable) drawable, key, false);
             }
         }
@@ -1242,8 +1246,10 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
 
     public void setChatAvatar(TLRPC.Chat chat) {
         avatarDrawable.setInfo(currentAccount, chat);
+        cacheAvatarDrawable.setInfo(currentAccount, chat);
         if (avatarImageView != null) {
             avatarImageView.setForUserOrChat(chat, avatarDrawable);
+            cacheAvatarImageView.imageReceiver.setForUserOrChat(chat, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
             avatarImageView.setRoundRadius(ChatObject.isForum(chat) ? dp(ChatObject.hasStories(chat) ? 11 : 16) : dp(21));
         }
     }
@@ -1259,23 +1265,27 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             avatarDrawable.setScaleSize(.8f);
             if (avatarImageView != null) {
                 avatarImageView.setImage(null, null, avatarDrawable, user);
+                cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
             }
         } else if (UserObject.isAnonymous(user)) {
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_ANONYMOUS);
             avatarDrawable.setScaleSize(.8f);
             if (avatarImageView != null) {
                 avatarImageView.setImage(null, null, avatarDrawable, user);
+                cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
             }
         } else if (UserObject.isUserSelf(user) && !showSelf) {
             avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_SAVED);
             avatarDrawable.setScaleSize(.8f);
             if (avatarImageView != null) {
                 avatarImageView.setImage(null, null, avatarDrawable, user);
+                cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
             }
         } else {
             avatarDrawable.setScaleSize(1f);
             if (avatarImageView != null) {
                 avatarImageView.setForUserOrChat(user, avatarDrawable);
+                cacheAvatarImageView.setForUserOrChat(user, cacheAvatarDrawable);
             }
         }
     }
@@ -1299,12 +1309,14 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
         if (user != null) {
             avatarDrawable.setInfo(currentAccount, user);
+            cacheAvatarDrawable.setInfo(currentAccount, user);
             if (UserObject.isReplyUser(user)) {
                 avatarDrawable.setScaleSize(.8f);
                 avatarDrawable.setAvatarType(AvatarDrawable.AVATAR_TYPE_REPLIES);
                 if (avatarImageView != null) {
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setImage(null, null, avatarDrawable, user);
+                    cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 }
             } else if (UserObject.isAnonymous(user)) {
                 avatarDrawable.setScaleSize(.8f);
@@ -1312,6 +1324,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (avatarImageView != null) {
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setImage(null, null, avatarDrawable, user);
+                    cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 }
             } else if (UserObject.isUserSelf(user) && parentFragment.getChatMode() == ChatActivity.MODE_SAVED) {
                 avatarDrawable.setScaleSize(.8f);
@@ -1319,6 +1332,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (avatarImageView != null) {
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setImage(null, null, avatarDrawable, user);
+                    cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 }
             } else if (UserObject.isUserSelf(user)) {
                 avatarDrawable.setScaleSize(.8f);
@@ -1326,12 +1340,14 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                 if (avatarImageView != null) {
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setImage(null, null, avatarDrawable, user);
+                    cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 }
             } else {
                 avatarDrawable.setScaleSize(1f);
                 if (avatarImageView != null) {
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.imageReceiver.setForUserOrChat(user, avatarDrawable,  null, true, VectorAvatarThumbDrawable.TYPE_STATIC, false);
+                    cacheAvatarImageView.imageReceiver.setForUserOrChat(user, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 }
             }
         } else if (ChatObject.isMonoForum(chat)) {
@@ -1342,11 +1358,13 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     avatarDrawable.setInfo(user2);
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setForUserOrChat(user2, avatarDrawable);
+                    cacheAvatarImageView.setForUserOrChat(user2, cacheAvatarDrawable);
                 } else {
                     final TLRPC.Chat chat2 = parentFragment.getMessagesController().getChat(-dialogId);
                     avatarDrawable.setInfo(chat2);
                     avatarImageView.setAnimatedEmojiDrawable(null);
                     avatarImageView.setForUserOrChat(chat2, avatarDrawable);
+                    cacheAvatarImageView.setForUserOrChat(chat2, cacheAvatarDrawable);
                 }
             } else {
                 avatarImageView.setAnimatedEmojiDrawable(null);
@@ -1360,6 +1378,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
             if (avatarImageView != null) {
                 avatarImageView.setAnimatedEmojiDrawable(null);
                 avatarImageView.setForUserOrChat(chat, avatarDrawable);
+                cacheAvatarImageView.imageReceiver.setForUserOrChat(chat, cacheAvatarDrawable,  null, false, VectorAvatarThumbDrawable.TYPE_STATIC, true);
                 avatarImageView.setRoundRadius(chat.forum ? dp(ChatObject.hasStories(chat) ? 11 : 16) : dp(21));
             }
         }
