@@ -2891,7 +2891,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             searchItem.setVisibility(GONE);
                         }
                         nameTextView[1].setTextColor(Color.WHITE);
-                        nameTextView[1].setPivotY(nameTextView[1].getMeasuredHeight());
                         if (scamDrawable != null) {
                             scamDrawable.setColor(Color.argb(179, 255, 255, 255));
                         }
@@ -3818,7 +3817,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             if (!isPulledDown && !isAnimationReversed) {
                                 dy /= 2;
                             } else if (isAnimationReversed) {
-                                dy *= 1.5;
+                                dy *= 1.45f;
                             }
                         }
                     }
@@ -5084,6 +5083,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
         checkPhotoDescriptionAlpha();
         avatarContainer2.addView(animatedStatusView);
+        nameTextView[1].setPivotY(0);
+        nameTextView[1].setPivotX(0);
+        onlineTextView[1].setPivotX(0);
+        onlineTextView[1].setPivotY(0);
 
         mediaCounterTextView = new AudioPlayerAlert.ClippingTextViewSwitcher(context) {
             @Override
@@ -6254,7 +6257,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer.setScaleX(avatarScale);
         avatarContainer.setScaleY(avatarScale);
         float diff = Math.min(1f, extraHeight / AndroidUtilities.dp(260f));
-        avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) * floatingInterpolator.getInterpolation(1 - calculateX(diff)) - dp(10) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+        avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
         avatarContainer.setTranslationY(AndroidUtilities.lerp((float) Math.ceil(avatarY), 0f, value));
         avatarImage.setRoundRadius((int) AndroidUtilities.lerp(getSmallAvatarRoundRadius(), 0f, value));
@@ -6338,9 +6341,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             statusColor = getThemedColor(Theme.key_avatar_subtitleInProfileBlue);
         }
         onlineTextView[1].setTextColor(ColorUtils.blendARGB(applyPeerColor(statusColor, true, online), 0xB3FFFFFF, value));
-        if (extraHeight > AndroidUtilities.dp(224f)) {
-            nameTextView[1].setPivotY(AndroidUtilities.lerp(0, nameTextView[1].getMeasuredHeight(), value));
-        }
         if (showStatusButton != null) {
             showStatusButton.setBackgroundColor(ColorUtils.blendARGB(Theme.multAlpha(Theme.adaptHSV(actionBarBackgroundColor, +0.18f, -0.1f), 0.5f), 0x23ffffff, currentExpandAnimatorValue));
         }
@@ -8058,7 +8058,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) * floatingInterpolator.getInterpolation(1 - calculateX(diff)) - dp(10) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
 
                     if (expandAnimator == null || !expandAnimator.isRunning()) {
@@ -8083,7 +8083,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 onlineTextView[0].setTranslationX(0);
                 onlineTextView[0].setTranslationY((float) Math.floor(avY) + AndroidUtilities.dp(24));
 
-                nameTextView[1].setPivotY(nameTextView[1].getMeasuredHeight());
                 if (Float.isNaN(avatarDisappearScale)) {
                     avatarDisappearScale = 1f;
                     blackAvatarView.setVisibility(View.INVISIBLE);
@@ -8113,8 +8112,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 starFgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
                 avatarContainer.setScaleX(avatarScale);
                 avatarContainer.setScaleY(avatarScale);
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) * floatingInterpolator.getInterpolation(1 - calculateX(diff)) - dp(10) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) * floatingInterpolator.getInterpolation(1 - calculateX(diff)) - dp(10) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
                 overlaysView.setAlphaValue(avatarAnimationProgress, false);
                 actionBar.setItemsColor(ColorUtils.blendARGB(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon), Color.WHITE, avatarAnimationProgress), false);
@@ -8161,8 +8160,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (expandAnimator == null || !expandAnimator.isRunning()) {
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) * floatingInterpolator.getInterpolation(1 - calculateX(diff)) - dp(10) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
-                    avatarContainer.setTranslationY((float) Math.ceil(avatarY));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationY(avatarY);
                     float extra = AndroidUtilities.dp(90f) * avatarScale - AndroidUtilities.dp(90f);
                     timeItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(16) + extra);
                     timeItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(15) + extra);
@@ -8299,10 +8298,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private float getOnlineY(float diff) {
-        return nameY - (isAnimationReversed ? dp(8) : 0) * (1 - calculateX(diff)) + dp(38);
+        return nameY - (isAnimationReversed ? dp(11) : 0) * (1 - calculateX(diff)) + dp(38);
     }
 
     DecelerateInterpolator decelerateInterpolator = new DecelerateInterpolator(1.2f);
+    DecelerateInterpolator decelerateInterpolator2 = new DecelerateInterpolator(0.5f);
     AccelerateInterpolator accelerateInterpolator2 = new AccelerateInterpolator(0.6f);
     AccelerateInterpolator accelerateInterpolator3 = new AccelerateInterpolator(1.3f);
     float connectedDif = -1f;
@@ -8313,8 +8313,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         hourglassView.setExpandProgress(lerp(0, 0.33f, hourglassScaleFactor));
         float calculatedDiff = calculateX(diff);
         if (openAnimationInProgress) {
-            avatarDisappearScale = lerp(0.45f,1f, calculatedDiff);
-            avatarAdditionalTranslationY = -dp(lerp(6f,0f, calculatedDiff));
+            avatarDisappearScale = lerp(0.47f,1f, calculatedDiff);
+            avatarAdditionalTranslationY = -dp(lerp(7f,0f, calculatedDiff));
+            float textScale = lerp(1f, 0.78f, floatingInterpolator.getInterpolation(1 - calculatedDiff));
+            nameTextView[0].setScaleY(textScale * 0.95f);
+            nameTextView[0].setScaleX(textScale* 1f);
+            onlineTextView[0].setScaleX(textScale * 1.105f);
+            onlineTextView[0].setScaleY(textScale * 1.105f);
+            giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff));
             for (FrameLayout profileButton : profileButtons) {
                 if (profileButton != null) {
                     float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
@@ -8414,7 +8420,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private float getNameY(float diff) {
         float calculatedDiff = calculateX(diff);
-        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff));
+        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff)) + (isAnimationReversed && !isInLandscapeMode && !AndroidUtilities.isTablet() ? dp(4): 0) * (1 - calculatedDiff);
     }
 
     private float getHourglassScaleFactor(float diff) {
@@ -8448,7 +8454,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         if (y < 0.35f) {
             vacuumProgress = 0f;
         } else if (y <= 0.85f) {
-            vacuumProgress = (y - 0.35f) / 0.5f;
+            vacuumProgress =decelerateInterpolator2.getInterpolation ((y - 0.35f) / 0.5f);
         } else {
             vacuumProgress = 1f;
         }
@@ -8467,11 +8473,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private float getNameX(float diff) {
-        return (displayMetrics.widthPixels / 2f - Math.min(nameTextView[1].getTextWidth(), displayMetrics.widthPixels - dp(48)) / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(50) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
+        return (displayMetrics.widthPixels / 2f - Math.min(nameTextView[1].getTextWidth(), displayMetrics.widthPixels - dp(48)) / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
     }
 
     private float getOnlineX(float diff) {
-        return (displayMetrics.widthPixels / 2f - onlineTextView[1].getTextWidth() / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(50) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
+        return (displayMetrics.widthPixels / 2f - onlineTextView[1].getTextWidth() / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
     }
 
     final static float centerProgress = 0.86090773f;

@@ -85,7 +85,7 @@ public class HourglassView extends View {
         float centerX = getWidth() / 2;
         if (1 - progress < 0.09) {
             connectionHeight = -1;
-            maxHeight= -1;
+            maxHeight = -1;
             return;
         }
         float realProgress = Math.min(1f, decelerateInterpolator.getInterpolation(((1f - progress) - 0.09f) / 0.91f));
@@ -94,9 +94,9 @@ public class HourglassView extends View {
         float height = Math.min(avatarTop + getHeight() * avatarScale, getHeight() * avatarScale * decelerateInterpolator2.getInterpolation((realProgress)));
 
         height = Math.min(avatarTop + getHeight() * avatarScale / 2, height) - dp(1);
-        maxHeight = Math.max(maxHeight,height);
-        float topOffsetY = 0;
-        float topOffsetX = Math.min(dp(26),Math.max(0,((1 - height / maxHeight) * 10) * dp(30)));
+        maxHeight = Math.max(maxHeight, height);
+        float topOffsetY = 2;
+        float topOffsetX = Math.min(dp(26), Math.max(0, ((1 - height / maxHeight) * 10) * dp(30)));
         if (height <= -(dp(1))) {
             return;
         }
@@ -108,7 +108,7 @@ public class HourglassView extends View {
 
             float startWidth = dp(15) + Math.max(0, expandProgress * getWidth() - dp(10)) + wideProgress * dp(4);
 
-            float centerWidth = (dp(15) + expandProgress * getWidth()) / 3 + (dp(8) + getWidth() * avatarScale / 2  -  ((dp(15) + expandProgress * getWidth()) / 3)) * wideProgress;
+            float centerWidth = (dp(15) + expandProgress * getWidth()) / 3 + (dp(8) + getWidth() * avatarScale / 2 - ((dp(15) + expandProgress * getWidth()) / 3)) * wideProgress;
             float topWidth = dp(8) + Math.max(0, expandProgress * getWidth() - dp(22)) + (topOffsetX + centerWidth - dp(38) + Math.max(0, expandProgress * getWidth() - dp(15)) - dp(10)) * wideProgress;
 
             hourglassPath.reset(); // avatarTop < height
@@ -116,7 +116,7 @@ public class HourglassView extends View {
 
             float centerY = height / 3 - (height / 4);
             hourglassPath.cubicTo(
-                    centerX - startWidth, - topOffsetY,
+                    centerX - startWidth, -topOffsetY,
                     centerX - centerWidth, centerY,
                     centerX - topWidth, height - height / 15);
             hourglassPath.cubicTo(
@@ -127,7 +127,7 @@ public class HourglassView extends View {
             hourglassPath.cubicTo(
                     centerX + topWidth, height - height / 15,
                     centerX + centerWidth, centerY,
-                    centerX + startWidth,  -topOffsetY);
+                    centerX + startWidth, -topOffsetY);
 
         } else {
             maxHeight = 0f;
