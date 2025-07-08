@@ -337,6 +337,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private String nameTextViewRightDrawable2ContentDescription = null;
     private SimpleTextView[] onlineTextView = new SimpleTextView[4];
     private AudioPlayerAlert.ClippingTextViewSwitcher mediaCounterTextView;
+    private LinearLayout profileButtonsLayout;
     private RLottieImageView writeButton;
     private AnimatorSet writeButtonAnimation;
     private AnimatorSet qrItemAnimation;
@@ -5106,7 +5107,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
         updateProfileData(true);
 
-
+        profileButtonsLayout = new LinearLayout(context);
+        profileButtonsLayout.setOrientation(LinearLayout.HORIZONTAL);
+        profileButtonsLayout.setPadding(dp(10), 0, dp(10), 0);
+        frameLayout.addView(profileButtonsLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56, Gravity.START | Gravity.TOP));
         drawProfileButtons();
 
         writeButton = new RLottieImageView(context);
@@ -5391,10 +5395,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private final AccelerateDecelerateInterpolator floatingInterpolator = new AccelerateDecelerateInterpolator();
 
     private void drawProfileButtons() {
-        FrameLayout frameLayout = (FrameLayout) fragmentView;
         for (FrameLayout profileButton : profileButtons) {
             if (profileButton != null) {
-                frameLayout.removeView(profileButton);
+                profileButtonsLayout.removeView(profileButton);
             }
         }
         Drawable profileButtonBackgroundDrawable = Theme.createRoundRectDrawable(dp(12), ColorUtils.blendARGB((Theme.isCurrentThemeDark() ? Color.WHITE : Color.BLACK), getThemedColor(Theme.key_actionBarDefault), 0.85f));
@@ -5410,12 +5413,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             profileButtons[buttonsCount] = newButton;
             buttonsCount++;
         }
-        int profileButtonSize = (displayMetrics.widthPixels - dp(20) - ((Math.max(1, buttonsCount) - 1) * dp(6))) / Math.max(1, buttonsCount);
-        int addedButtons = 0;
+        int addedCount = 0;
         for (FrameLayout profileButton : profileButtons) {
             if (profileButton != null) {
-                frameLayout.addView(profileButton, LayoutHelper.createFrame(profileButtonSize / AndroidUtilities.density, 56, Gravity.START | Gravity.TOP, addedButtons == 0 ? 10 : (10 + addedButtons * profileButtonSize / AndroidUtilities.density) + 6 * (addedButtons), 0, 0, 8));
-                addedButtons++;
+                profileButtonsLayout.addView(profileButton, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56));
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) profileButton.getLayoutParams();
+                lp.weight = 1;
+                if(addedCount > 0){
+                    lp.setMarginStart(dp(6));
+                }
+                addedCount++;
             }
         }
         fixLayout();
@@ -6246,9 +6253,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             blackAvatarView.setVisibility(avatarImage.animatedEmojiDrawable == null ? View.VISIBLE : View.GONE);
             blurredImage.setVisibility(View.VISIBLE);
         }
+        if(profileButtonsLayout != null){
+            profileButtonsLayout.setScaleY(1);
+        }
         for (FrameLayout profileButton : profileButtons) {
             if (profileButton != null) {
-                profileButton.setScaleY(1);
                 profileButton.getChildAt(0).setScaleX(1);
                 profileButton.getChildAt(1).setScaleX(1);
                 profileButton.setAlpha(1f);
@@ -6258,7 +6267,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer.setScaleX(avatarScale);
         avatarContainer.setScaleY(avatarScale);
         float diff = Math.min(1f, extraHeight / AndroidUtilities.dp(260f));
-        avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+        avatarContainer.setTranslationX((openAnimationInProgress ? (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
         avatarContainer.setTranslationY(AndroidUtilities.lerp((float) Math.ceil(avatarY), 0f, value));
         avatarImage.setRoundRadius((int) AndroidUtilities.lerp(getSmallAvatarRoundRadius(), 0f, value));
@@ -7819,10 +7828,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
             listView.setOverScrollMode(extraHeight > AndroidUtilities.dp(224f) && extraHeight < listView.getMeasuredWidth() - newTop ? View.OVER_SCROLL_NEVER : View.OVER_SCROLL_ALWAYS);
 
-            for (FrameLayout profileButton : profileButtons) {
-                if (profileButton != null) {
-                    profileButton.setTranslationY(profileButton.getHeight() * (1f - profileButton.getScaleY()) / 2 + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset - AndroidUtilities.dp(72));
-                }
+            if(profileButtonsLayout != null) {
+                profileButtonsLayout.setTranslationY(profileButtonsLayout.getHeight() * (1f - profileButtonsLayout.getScaleY()) / 2 + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset - AndroidUtilities.dp(72));
             }
             if (writeButton != null) {
                 writeButton.setTranslationY((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + ActionBar.getCurrentActionBarHeight() + extraHeight + searchTransitionOffset - AndroidUtilities.dp(29.5f));
@@ -8059,7 +8066,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
 
                     if (expandAnimator == null || !expandAnimator.isRunning()) {
@@ -8113,8 +8120,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 starFgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
                 avatarContainer.setScaleX(avatarScale);
                 avatarContainer.setScaleY(avatarScale);
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
                 overlaysView.setAlphaValue(avatarAnimationProgress, false);
                 actionBar.setItemsColor(ColorUtils.blendARGB(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon), Color.WHITE, avatarAnimationProgress), false);
@@ -8161,7 +8168,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (expandAnimator == null || !expandAnimator.isRunning()) {
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-fragmentView.getWidth() / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
                     avatarContainer.setTranslationY(avatarY);
                     float extra = AndroidUtilities.dp(90f) * avatarScale - AndroidUtilities.dp(90f);
                     timeItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(16) + extra);
@@ -8315,7 +8322,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         float calculatedDiff = calculateX(diff);
         if (openAnimationInProgress) {
             avatarDisappearScale = lerp(0.47f, 1f, calculatedDiff);
-            avatarAdditionalTranslationY = -dp(lerp(7f, 0f, calculatedDiff));
+            avatarAdditionalTranslationY = -dp(lerp(!isInLandscapeMode || AndroidUtilities.isTablet() ? 7f : 2f, 0f, calculatedDiff));
             float textScale = lerp(1f, 0.78f, floatingInterpolator.getInterpolation(1 - calculatedDiff));
             nameTextView[0].setScaleY(textScale * 0.95f);
             nameTextView[0].setRightDrawableScale(1.3f);
@@ -8324,12 +8331,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             starPatternAlpha = lerp(0f, 1f, calculatedDiff);
             onlineTextView[0].setScaleY(textScale * 1.14f);
             giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff, false));
+            float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
+            if(profileButtonsLayout != null) {
+                if (buttonScaleProgress < 0.4) {
+                    profileButtonsLayout.setScaleY(buttonScaleProgress / 0.4f);
+                } else {
+                    profileButtonsLayout.setScaleY(1);
+                }
+            }
             for (FrameLayout profileButton : profileButtons) {
                 if (profileButton != null) {
-                    float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
                     if (buttonScaleProgress < 0.4) {
                         float ds = buttonScaleProgress / 0.4f;
-                        profileButton.setScaleY(ds);
                         profileButton.getChildAt(0).setScaleX(ds);
                         profileButton.getChildAt(1).setScaleX(ds);
                         profileButton.setAlpha(ds);
@@ -8339,7 +8352,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             profileButton.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        profileButton.setScaleY(1);
                         profileButton.getChildAt(0).setScaleX(1);
                         profileButton.getChildAt(1).setScaleX(1);
                         profileButton.setAlpha(1f);
@@ -8356,12 +8368,18 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             } else if (!hourglassView.isConnected()) {
                 connectedDif = -1f;
             }
+            float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
+            if(profileButtonsLayout != null) {
+                if (buttonScaleProgress < 0.4) {
+                    profileButtonsLayout.setScaleY(buttonScaleProgress / 0.4f);
+                } else {
+                    profileButtonsLayout.setScaleY(1);
+                }
+            }
             for (FrameLayout profileButton : profileButtons) {
                 if (profileButton != null) {
-                    float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
                     if (buttonScaleProgress < 0.4) {
                         float ds = buttonScaleProgress / 0.4f;
-                        profileButton.setScaleY(ds);
                         profileButton.getChildAt(0).setScaleX(ds);
                         profileButton.getChildAt(1).setScaleX(ds);
                         profileButton.setAlpha(ds);
@@ -8371,7 +8389,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                             profileButton.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        profileButton.setScaleY(1);
                         profileButton.getChildAt(0).setScaleX(1);
                         profileButton.getChildAt(1).setScaleX(1);
                         profileButton.setAlpha(1f);
@@ -8402,9 +8419,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             blackAvatarView.setVisibility(View.INVISIBLE);
             blurredImage.setVisibility(View.INVISIBLE);
             giftsView.setVacuumProgress(1f);
+            if(profileButtonsLayout != null){
+                profileButtonsLayout.setScaleY(1);
+            }
             for (FrameLayout profileButton : profileButtons) {
                 if (profileButton != null) {
-                    profileButton.setScaleY(1);
                     profileButton.getChildAt(0).setScaleX(1);
                     profileButton.getChildAt(1).setScaleX(1);
                     profileButton.setAlpha(1f);
@@ -8425,7 +8444,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private float getNameY(float diff) {
         float calculatedDiff = calculateX(diff);
-        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff)) + (isAnimationReversed && !isInLandscapeMode && !AndroidUtilities.isTablet() ? dp(4) : 0) * (1 - calculatedDiff);
+        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff)) + (isAnimationReversed && !isInLandscapeMode || AndroidUtilities.isTablet() ? dp(4) + (AndroidUtilities.isTablet() ? dp(4) : 0) : 0) * (1 - calculatedDiff);
     }
 
     private float getHourglassScaleFactor(float diff) {
@@ -8464,7 +8483,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         } else {
             vacuumResult = 1f;
         }
-        if(withStars){
+        if (withStars) {
             vacuumProgress = vacuumResult;
         }
         return vacuumResult;
@@ -8482,11 +8501,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private float getNameX(float diff) {
-        return (displayMetrics.widthPixels / 2f - Math.min(nameTextView[1].getTextWidth(), displayMetrics.widthPixels - dp(48)) / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
+        return (fragmentView.getWidth() / 2f - Math.min(nameTextView[1].getTextWidth(), fragmentView.getWidth() - dp(48)) / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
     }
 
     private float getOnlineX(float diff) {
-        return (displayMetrics.widthPixels / 2f - onlineTextView[1].getTextWidth() / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
+        return (fragmentView.getWidth() / 2f - onlineTextView[1].getTextWidth() / 2f) * (isAnimationReversed ? calculateX(diff) : decelerateInterpolator.getInterpolation(calculateX(diff))) + ((isAnimationReversed ? (actionBar.backButtonImageView.getWidth() + dp(4) + (openAnimationInProgress ? dp(60) : 0)) : AndroidUtilities.dp(12f))) * (1 - calculateX(diff));
     }
 
     final static float centerProgress = 0.86090773f;
@@ -8567,24 +8586,6 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         }
         fixLayout();
-
-        int profileButtonCount = 0;
-        for (FrameLayout profileButton : profileButtons) {
-            if (profileButton != null) {
-                profileButtonCount++;
-            }
-        }
-        int addedButtonsCount = 0;
-
-        int profileButtonSize = (displayMetrics.widthPixels - dp(20) - ((Math.max(1, profileButtonCount) - 1) * dp(6))) / Math.max(1, profileButtonCount);
-        for (FrameLayout profileButton : profileButtons) {
-            if (profileButton != null) {
-                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) profileButton.getLayoutParams();
-                lp.width = profileButtonSize;
-                lp.leftMargin = dp(addedButtonsCount == 0 ? 10 : (10 + addedButtonsCount * profileButtonSize / AndroidUtilities.density) + 6 * (addedButtonsCount));
-                addedButtonsCount++;
-            }
-        }
     }
 
     private void invalidateIsInLandscapeMode() {

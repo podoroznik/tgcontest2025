@@ -1274,7 +1274,7 @@ public class ProfileGalleryView extends CircularViewPager implements Notificatio
 
             item.imageView.setRoundRadius(roundTopRadius, roundTopRadius, roundBottomRadius, roundBottomRadius);
             item.imageView.setTag(realPosition);
-            if(item.imageView.hasBlur){
+            if(parentAvatarImageView.hasBottomBlur){
                 item.imageView.setHasBottomBlur(true);
             }
             return item;
