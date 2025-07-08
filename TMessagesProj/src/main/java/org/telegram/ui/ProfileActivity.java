@@ -572,6 +572,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int rowCount;
 
     private int setAvatarRow;
+    private float starPatternAlpha = 1f;
     private int setAvatarSectionRow;
     private int channelRow;
     private int channelDividerRow;
@@ -1188,7 +1189,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     if (loadedScale > 0) {
                         canvas.save();
                         canvas.clipRect(0, 0, getMeasuredWidth(), y1);
-                        StarGiftPatterns.drawProfileCenterPattern(canvas, emoji, getMeasuredWidth(), ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + dp(224f)) - (1f - extraHeight / dp(224f)) * dp(50), giftsView.getMaxY() + avatarContainer.getHeight() * 1.1721815f / 2f, vacuumProgress, avatarContainer.getY());
+                        StarGiftPatterns.drawProfileCenterPattern(canvas, emoji, getMeasuredWidth(), ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + dp(224f)) - (1f - extraHeight / dp(224f)) * dp(50), giftsView.getMaxY() + avatarContainer.getHeight() * 1.1721815f / 2f, vacuumProgress, avatarContainer.getY(), starPatternAlpha);
                         canvas.restore();
                     }
                 }
@@ -6257,7 +6258,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         avatarContainer.setScaleX(avatarScale);
         avatarContainer.setScaleY(avatarScale);
         float diff = Math.min(1f, extraHeight / AndroidUtilities.dp(260f));
-        avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+        avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
         avatarContainer.setTranslationY(AndroidUtilities.lerp((float) Math.ceil(avatarY), 0f, value));
         avatarImage.setRoundRadius((int) AndroidUtilities.lerp(getSmallAvatarRoundRadius(), 0f, value));
@@ -8058,7 +8059,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
 
                     if (expandAnimator == null || !expandAnimator.isRunning()) {
@@ -8112,8 +8113,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 starFgItem.setTranslationY(avatarContainer.getY() + AndroidUtilities.dp(24) + extra);
                 avatarContainer.setScaleX(avatarScale);
                 avatarContainer.setScaleY(avatarScale);
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
-                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
 
                 overlaysView.setAlphaValue(avatarAnimationProgress, false);
                 actionBar.setItemsColor(ColorUtils.blendARGB(peerColor != null ? Color.WHITE : getThemedColor(Theme.key_actionBarDefaultIcon), Color.WHITE, avatarAnimationProgress), false);
@@ -8160,7 +8161,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 if (expandAnimator == null || !expandAnimator.isRunning()) {
                     avatarContainer.setScaleX(avatarScale);
                     avatarContainer.setScaleY(avatarScale);
-                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))  + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)): -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
+                    avatarContainer.setTranslationX((openAnimationInProgress ? (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10)) + ((-(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2) - (-displayMetrics.widthPixels / 2f + avatarContainer.getWidth() / 2f + actionBar.backButtonImageView.getWidth() + dp(10))) * floatingInterpolator.getInterpolation(calculateX(diff)) : -(avatarContainer.getWidth() * avatarScale - avatarContainer.getWidth()) / 2));
                     avatarContainer.setTranslationY(avatarY);
                     float extra = AndroidUtilities.dp(90f) * avatarScale - AndroidUtilities.dp(90f);
                     timeItem.setTranslationX(avatarContainer.getX() + AndroidUtilities.dp(16) + extra);
@@ -8298,7 +8299,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     }
 
     private float getOnlineY(float diff) {
-        return nameY - (isAnimationReversed ? dp(11) : 0) * (1 - calculateX(diff)) + dp(38);
+        return nameY - (isAnimationReversed ? dp(11.5f) : 0) * (1 - calculateX(diff)) + dp(38);
     }
 
     DecelerateInterpolator decelerateInterpolator = new DecelerateInterpolator(1.2f);
@@ -8313,14 +8314,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         hourglassView.setExpandProgress(lerp(0, 0.33f, hourglassScaleFactor));
         float calculatedDiff = calculateX(diff);
         if (openAnimationInProgress) {
-            avatarDisappearScale = lerp(0.47f,1f, calculatedDiff);
-            avatarAdditionalTranslationY = -dp(lerp(7f,0f, calculatedDiff));
+            avatarDisappearScale = lerp(0.47f, 1f, calculatedDiff);
+            avatarAdditionalTranslationY = -dp(lerp(7f, 0f, calculatedDiff));
             float textScale = lerp(1f, 0.78f, floatingInterpolator.getInterpolation(1 - calculatedDiff));
             nameTextView[0].setScaleY(textScale * 0.95f);
-            nameTextView[0].setScaleX(textScale* 1f);
-            onlineTextView[0].setScaleX(textScale * 1.105f);
-            onlineTextView[0].setScaleY(textScale * 1.105f);
-            giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff));
+            nameTextView[0].setRightDrawableScale(1.3f);
+            nameTextView[0].setScaleX(textScale * 0.99f);
+            onlineTextView[0].setScaleX(textScale * 1.12f);
+            starPatternAlpha = lerp(0f, 1f, calculatedDiff);
+            onlineTextView[0].setScaleY(textScale * 1.14f);
+            giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff, false));
             for (FrameLayout profileButton : profileButtons) {
                 if (profileButton != null) {
                     float buttonScaleProgress = floatingInterpolator.getInterpolation(Math.max(calculatedDiff, 0.1f) - 0.1f);
@@ -8345,6 +8348,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
             }
         } else if (isAnimationReversed) {
+            starPatternAlpha = 1f;
             blackAvatarView.setVisibility(avatarImage.animatedEmojiDrawable == null ? View.VISIBLE : View.GONE);
             blurredImage.setVisibility(View.VISIBLE);
             if (connectedDif == -1f && hourglassView.isConnected()) {
@@ -8391,8 +8395,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             blurredImage.setVisibility(diff == 1 || diff == 0 ? View.INVISIBLE : View.VISIBLE);
             blackAvatarView.setVisibility(diff == 1 || diff == 0 ? View.INVISIBLE : (avatarImage.animatedEmojiDrawable == null ? View.VISIBLE : View.GONE));
 
-            giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff));
+            giftsView.setVacuumProgress(calculateVacuumProgress(calculatedDiff, true));
         } else {
+            starPatternAlpha = 1f;
             connectedDif = -1f;
             blackAvatarView.setVisibility(View.INVISIBLE);
             blurredImage.setVisibility(View.INVISIBLE);
@@ -8420,7 +8425,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
 
     private float getNameY(float diff) {
         float calculatedDiff = calculateX(diff);
-        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff)) + (isAnimationReversed && !isInLandscapeMode && !AndroidUtilities.isTablet() ? dp(4): 0) * (1 - calculatedDiff);
+        return ((dp(90f + 28 + 6) + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)) * (isAnimationReversed ? accelerateInterpolator2.getInterpolation(calculatedDiff) : calculatedDiff)) + ((actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + (isAnimationReversed ? 0 : (ActionBar.getCurrentActionBarHeight() + extraHeight - dp(72 + 56 + 8)))) * ((1 - calculatedDiff)) + (isAnimationReversed && !isInLandscapeMode && !AndroidUtilities.isTablet() ? dp(4) : 0) * (1 - calculatedDiff);
     }
 
     private float getHourglassScaleFactor(float diff) {
@@ -8450,15 +8455,19 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
     }
 
-    private float calculateVacuumProgress(float y) {
+    private float calculateVacuumProgress(float y, boolean withStars) {
+        float vacuumResult = 0f;
         if (y < 0.35f) {
-            vacuumProgress = 0f;
+            vacuumResult = 0f;
         } else if (y <= 0.85f) {
-            vacuumProgress =decelerateInterpolator2.getInterpolation ((y - 0.35f) / 0.5f);
+            vacuumResult = decelerateInterpolator2.getInterpolation((y - 0.35f) / 0.5f);
         } else {
-            vacuumProgress = 1f;
+            vacuumResult = 1f;
         }
-        return vacuumProgress;
+        if(withStars){
+            vacuumProgress = vacuumResult;
+        }
+        return vacuumResult;
     }
 
 

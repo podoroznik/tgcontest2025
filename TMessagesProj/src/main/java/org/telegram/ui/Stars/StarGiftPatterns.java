@@ -285,7 +285,7 @@ public class StarGiftPatterns {
         }
     }
 
-    public static void drawProfileCenterPattern(Canvas canvas, Drawable pattern, float w, float h, float avatarCenterY, float progress2, float currentAvatarCenter) {
+    public static void drawProfileCenterPattern(Canvas canvas, Drawable pattern, float w, float h, float avatarCenterY, float progress2, float currentAvatarCenter, float alpha) {
 
         final float l = 0, r = w, c = (r + l) / 2;
 
@@ -296,7 +296,7 @@ public class StarGiftPatterns {
             final float x = profileCenter[i];
             final float y = profileCenter[i + 1];
             final float size = lerp(profileCenter[i + 2] * 0.9f, profileCenter[i + 2], progress);
-            final float thisAlpha = profileCenter[i + 3];
+            final float thisAlpha = profileCenter[i + 3] * alpha;
             final float offsetX = profileCenter[i + 5];
             final float offsetY = profileCenter[i + 6];
 
