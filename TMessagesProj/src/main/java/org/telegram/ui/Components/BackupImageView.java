@@ -421,7 +421,7 @@ public class BackupImageView extends View {
         if (blurAllowed && hasBlur) {
             blurImageReceiver.draw(canvas);
         }
-        if (blurAllowed && hasBottomBlur && !(imageReceiver.getDrawable() != null && (imageReceiver.getDrawable() instanceof AnimatedFileDrawable) && imageReceiver.getAllowStartAnimation() && ((AnimatedFileDrawable) imageReceiver.getDrawable()).getHasBottomBlur())) {
+        if (blurAllowed && hasBottomBlur && !(imageReceiver.getDrawable() != null && (imageReceiver.getDrawable() instanceof AnimatedFileDrawable) && (imageReceiver.getAllowStartAnimation() || imageReceiver.isAnimationRunning()) && ((AnimatedFileDrawable) imageReceiver.getDrawable()).getHasBottomBlur())) {
             blurImageReceiver.draw(canvas);
         }
         checkAnimationBottomBlur();

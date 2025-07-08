@@ -1201,8 +1201,8 @@ public class AnimatedFileDrawable extends BitmapDrawable implements Animatable, 
         BitmapShader bitmapShader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
 
         LinearGradient alphaGradient = new LinearGradient(
-                0, bitmap.getHeight() - bitmap.getHeight() * 0.23f,
-                0, bitmap.getHeight() - bitmap.getHeight() * 0.33f,
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.25f,
+                0, bitmap.getHeight() - bitmap.getHeight() * 0.35f,
                 Color.BLACK, Color.TRANSPARENT,
                 Shader.TileMode.CLAMP);
 
